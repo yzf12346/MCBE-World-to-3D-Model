@@ -21,5 +21,6 @@ import BlockMappingManager from "./minecraft/manager/ModelMappingManager";
   BlockMappingManager.init();
 }
 
+//
 console.log(BlockMappingManager.queryModel("grass").boxes[0]);
 
