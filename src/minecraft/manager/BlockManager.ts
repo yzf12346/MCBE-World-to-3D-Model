@@ -2,12 +2,15 @@ import BlockType, {BlockTexture} from "../world/BlockType";
 import {readFileSync} from "fs";
 import {Config} from "../../utils/Config";
 import TextureManager from "./TextureManager";
-import ResourceManager from "./ResourceManager";
+
+
+import ModelConfigManager from "./ModelConfigManager";
 export default class BlockManager {
   private static blocks = new Map<string, BlockType>();
 
   static getBlock(identifier: string): BlockType | undefined {
     return this.blocks.get(identifier);
+
   }
 
   static init(): void {
@@ -45,7 +48,7 @@ export default class BlockManager {
     // 将所有面设为该值
     if (typeof textureJson == "string") {
       // 获取贴图的路径
-      console.log(textureJson);      
+      //console.log(textureJson);
       let texturePath = TextureManager.getTexture(textureJson);
       blk.textures = {
         up: texturePath,
@@ -107,6 +110,10 @@ export default class BlockManager {
       const value = data[key];
       const texture = value["textures"];
 
+      // 获取方块的模型
+      type_.model = ModelConfigManager.getModel(type_.identifier);
+      // 获取方块是否有面剔除
+      type_.isCulling = ModelConfigManager.getIsCulling(type_.identifier);
       // 如果方块没有贴图属性则返回
       // 如 air
       if (texture == undefined) {

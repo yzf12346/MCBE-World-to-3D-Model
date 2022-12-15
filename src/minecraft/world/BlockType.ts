@@ -1,3 +1,5 @@
+import OptifinePartModel from "../model/OptifinePartModel";
+
 export interface BlockTexture{
   up:string;
   down:string;
@@ -16,5 +18,7 @@ export default class BlockType {
    */
   namespace: string = "minecraft";
   textures:BlockTexture;
+  model:OptifinePartModel;
+  isCulling:boolean;
   visible:boolean = true;
 }

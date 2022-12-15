@@ -4,11 +4,21 @@ import path from "path";
 import vec2 from "../../tsm/vec2";
 import vec3 from "../../tsm/vec3";
 
+export class OptifinePartUV{
+  north:number[]|undefined;
+  south:number[]|undefined;
+  east:number[]|undefined;
+  west:number[]|undefined;
+  up:number[]|undefined;
+  down:number[]|undefined;
+}
+
 export class OptifinePartBox {
   id: string = undefined;
   from: vec3 = undefined;
   to: vec3 = undefined;
   rotation:vec3 = undefined;
+  uv:OptifinePartUV;
 }
 
 export default class OptifinePartModel {
@@ -59,10 +69,22 @@ export default class OptifinePartModel {
       pb.from = new vec3([x1, y1, z1]);
       pb.to = new vec3([x2, y2, z2]);
       pb.rotation = vec3.zero;
+      pb.uv = this.parseUV(box);
       result.push(pb);
     }
 
     return result;
+  }
+  private static parseUV(json:any):OptifinePartUV{
+    
+    let uv = new OptifinePartUV();
+    uv.east = json["uvEast"]??undefined;
+    uv.west = json["uvWest"]??undefined;
+    uv.north = json["uvNorth"]??undefined;
+    uv.south = json["uvSouth"]??undefined;
+    uv.up = json["uvUp"]??undefined;
+    uv.down = json["uvDown"]??undefined;
+    return uv;
   }
   /**
    * 解析模型
@@ -78,13 +100,14 @@ export default class OptifinePartModel {
     model._boxes.push(...this.parseBoxes(json.boxes));
     
     // 解析submodels
-    for (let submodel of json.submodels?json.submodels:[]){
+    for (let submodel of json.submodels??[]){      
       let rotation = new vec3(submodel.rotate);
       let boxes = this.parseBoxes(submodel.boxes);
 
       // 解析box的rotation
       // 并将box添加到_boxes
       boxes.forEach(v=>{
+        v.id = submodel.id;
         v.rotation = rotation;
         model._boxes.push(v);
       });
