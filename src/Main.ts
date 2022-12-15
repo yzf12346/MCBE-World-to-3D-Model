@@ -1,13 +1,8 @@
-import {log} from "console";
-import BlockManager from "./minecraft/manager/BlockManager";
-import GeometrySystem from "./minecraft/manager/GeometrySystem";
-import ResourceManager from "./minecraft/manager/ResourceManager";
-import TextureManager from "./minecraft/manager/TextureManager";
-import ObjFile from "./obj/ObjFile";
-import mat4 from "./tsm/mat4";
-import quat from "./tsm/quat";
-import vec3 from "./tsm/vec3";
 import {Config} from "./utils/Config";
+import OptifinePartModel from "./minecraft/model/OptifinePartModel";
+import {inspect} from "util";
+import OptifinePartManager from "./minecraft/manager/OptifinePartManager";
+import BlockMappingManager from "./minecraft/manager/ModelMappingManager";
 
 // 配置
 {
@@ -15,15 +10,16 @@ import {Config} from "./utils/Config";
   Config.blockTexturesPath = "/sdcard/res/textures/blocks/";
   Config.terrianTextureJsonPath = "/sdcard/res/textures/terrain_texture.json";
   Config.texturePath = "/sdcard/res/textures/";
+  Config.blockModelsPath = "/sdcard/res/blockmodels/";
+  Config.blockModelMappingPath = "/sdcard/res/mapping.json"
 }
 // 初始化Manager
-/*{
-  TextureManager.init();
-  BlockManager.init();
+{
+  //TextureManager.init();
+  //BlockManager.init();
+  OptifinePartManager.init();
+  BlockMappingManager.init();
 }
-console.log(
-  BlockManager.getBlock("stone").textures
-)
-*/
 
-GeometrySystem.loadGeometry("/sdcard/Download/model.geo (2).json");
+console.log(BlockMappingManager.queryModel("grass").boxes[0]);
+
