@@ -2,9 +2,8 @@
 english | [简体中文
 ](https://github.com/yzf12346/MCBE-World-to-3D-Model/blob/master/README-zh.md)
 
-`Minecraft bedrock World to 3D Model` is a nodejs program written in  `Typescript`.
-It use `Websocket` to read minecraft blocks.
-It can export 3D model format,example : `.obj`  `.fbx`.
+`Minecraft bedrock World to 3D Model` is a nodejs software written in `Typescript`.
+This project can use `WebSocket Server` to read `Minecraft Bedrock` blocks and export 3D model formats such as `.obj` `.fbx` format
 
 ## Features
 - [ ] Load blocks from Minecraft
