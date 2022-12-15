@@ -6,6 +6,9 @@ import OptifinePartManager from "./minecraft/manager/OptifinePartManager";
 import BlockManager from "./minecraft/manager/BlockManager";
 import TextureManager from "./minecraft/manager/TextureManager";
 import ModelConfigManager from "./minecraft/manager/ModelConfigManager";
+import BlockArea from "./minecraft/world/BlockArea";
+import vec3 from "./tsm/vec3";
+import BlockAreaExporter from "./obj/BlockAreaExporter";
 
 // 配置
 {
@@ -14,7 +17,7 @@ import ModelConfigManager from "./minecraft/manager/ModelConfigManager";
   Config.terrianTextureJsonPath = __dirname + "/../res/textures/terrain_texture.json";
   Config.texturePath = __dirname + "/../res/textures/";
   Config.blockModelsPath = __dirname + "/../res/blockmodels/";
-  Config.blockModelMappingPath = __dirname + "/../res/mapping.json"
+  Config.blockModelConfigPath = __dirname + "/../res/model_config.json"
 }
 // 初始化Manager
 {
@@ -32,3 +35,10 @@ console.log(__dirname);
 console.log(BlockManager.getBlock("stone"));
 
 
+let area = new BlockArea(new vec3([1, 1, 1]));
+let blk = BlockManager.getBlock("fence");
+area.setBlock(new vec3([0, 0, 0]), blk);
+
+let obj = BlockAreaExporter.exportObjFile(area);
+
+obj.writeFile("/sdcard/out.obj")

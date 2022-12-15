@@ -3,13 +3,15 @@ import {Config} from "../../utils/Config";
 import OptifinePartModel from "../model/OptifinePartModel";
 import OptifinePartManager from "./OptifinePartManager";
 
+export interface ModelVisible{}
+
 export default class ModelConfigManager {
   private static defaultModel: string;
   private static defaultCulling: boolean;
   private static mapping = new Map<string, string>();
   private static culling = new Map<string, boolean>();
   public static init() {
-    let data = readFileSync(Config.blockModelMappingPath).toString();
+    let data = readFileSync(Config.blockModelConfigPath).toString();
     let json = JSON.parse(data);
 
     Object.keys(json).forEach(key => {
@@ -35,4 +37,9 @@ export default class ModelConfigManager {
   public static getIsCulling(blockname: string) {
     return this.culling.get(blockname) ?? this.defaultCulling;
   }
+
+  /**
+   * 获取方块连接可视控制器
+   */
+  //public static getConnectVisible():
 }

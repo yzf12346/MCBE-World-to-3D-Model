@@ -1,7 +1,7 @@
 import BlockType from "./BlockType";
 
 export default class Block {
-  private type:BlockType;
+  public type:BlockType;
   public readonly data:any;
 
   /**
