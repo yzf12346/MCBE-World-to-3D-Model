@@ -1,0 +1,6 @@
+{
+  "*": {
+    "model": "default",
+    "face_culling": true
+  }
+}
