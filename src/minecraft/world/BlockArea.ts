@@ -1,7 +1,5 @@
 import vec3 from "../../tsm/vec3";
 import Block from "./Block";
-import BlockType from "./BlockType";
-
 
 /**
  * 可以储存方块的区域
@@ -44,8 +42,10 @@ export default class BlockArea {
    * @param type 方块的类型
    * @param data 方块的附加值:默认传入{}
    */
-  public setBlock(pos: vec3, type: BlockType, data: any = {}) {
-    this.blocks.set(JSON.stringify(pos), new Block(type, data))
+  public setBlock(pos: vec3, type: Block, data: any = {}) {
+    let blk = type.clone();
+    blk.data = data;
+    this.blocks.set(JSON.stringify(pos), blk);
   }
   /**
    * 遍历区域内所有坐标

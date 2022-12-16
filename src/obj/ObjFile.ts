@@ -2,6 +2,9 @@ import {log} from "console";
 import vec3 from "../tsm/vec3";
 import {openSync, writeFileSync} from "fs";
 import vec2 from "../tsm/vec2";
+/**
+ * 工具函数:将string转为vec3
+ */
 function parseV3(str: string): vec3 {
   let value = str.split(" ");
   return new vec3(
@@ -12,10 +15,17 @@ function parseV3(str: string): vec3 {
     ]
   )
 }
+
+/**
+ * 工具函数:将vec3转为string
+ */
 function strV3(vt: vec3): string {
   return vt.x + " " + vt.y + " " + vt.z;
 }
 
+/**
+ * 工具函数:将string转为vec2
+ */
 function parseV2(str: string): vec2 {
   let value = str.split(" ");
   return new vec2(
@@ -25,6 +35,10 @@ function parseV2(str: string): vec2 {
     ]
   )
 }
+
+/**
+ * 工具函数:将vec2转为string
+ */
 function strV2(vt: vec2): string {
   return vt.x + " " + vt.y;
 }
@@ -46,6 +60,7 @@ export default class ObjFile {
    * @returns 顶点的索引
    */
   public addVertex(vt: vec3): number {
+    // 保证顶点的唯一性
     let str = strV3(vt);
     if (this.vertexs.has(str)) {
       return this.vertexs.get(str);
@@ -69,7 +84,6 @@ export default class ObjFile {
   }
   /**
    * 添加面
-   * 该面只能有三个顶点
    */
   public addFace(vts: vec3[], uvs: vec2[]): ObjFileFace {
     let indexs = [];

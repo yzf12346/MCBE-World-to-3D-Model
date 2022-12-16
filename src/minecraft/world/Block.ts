@@ -1,25 +1,34 @@
-import BlockType from "./BlockType";
+import vec3 from "../../tsm/vec3";
+import OptifinePartModel from "../model/OptifinePartModel";
+
+export class BlockTextures{
+  up:string|undefined;
+  down:string|undefined;
+  east:string|undefined;
+  west:string|undefined;
+  north:string|undefined;
+  south:string|undefined;
+}
 
 export default class Block {
-  public type:BlockType;
-  public readonly data:any;
+  public identifier:string;
+  public data:any;
+  public textures:BlockTextures;
+  public model:OptifinePartModel;
+  public isCulling:boolean = false;
+  public visible:boolean = true;
+  public position:vec3 = vec3.zero;
+  public rotation:vec3 = vec3.zero;
 
-  /**
-   * 方块的标识符
-   */
-  get identifier(){
-    return this.type.identifier;
-  }
-
-  /**
-   * 方块的命名空间
-   */
-  get namespace(){
-    return this.type.namespace;
-  }
-
-  constructor(type:BlockType,data:any){
-    this.type = type;
+  constructor(id:string,data:any){
+    this.identifier = id;
     this.data = data;
+  }
+
+  public clone():Block{
+    let blk = new Block(this.identifier,{...this.data});
+    blk.textures = this.textures;
+    blk.model = this.model;
+    return blk;
   }
 }

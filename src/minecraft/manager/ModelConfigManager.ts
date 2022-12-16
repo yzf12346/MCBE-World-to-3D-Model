@@ -10,6 +10,11 @@ export default class ModelConfigManager {
   private static defaultCulling: boolean;
   private static mapping = new Map<string, string>();
   private static culling = new Map<string, boolean>();
+
+  /**
+   * 初始化模型配置管理器
+   * @description 须先初始化OptifinePartManager
+   */
   public static init() {
     let data = readFileSync(Config.blockModelConfigPath).toString();
     let json = JSON.parse(data);

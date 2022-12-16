@@ -1,4 +1,4 @@
-import OptifinePartModel, {OptifinePartBox, OptifinePartUV} from "../minecraft/model/OptifinePartModel";
+import OptifinePartModel, {OptifinePartBox} from "../minecraft/model/OptifinePartModel";
 import Block from "../minecraft/world/Block";
 import BlockArea from "../minecraft/world/BlockArea";
 import vec2 from "../tsm/vec2";
@@ -51,7 +51,7 @@ export default class BlockAreaExporter {
   }
 
   public static drawBlock(obj: ObjFile, block: Block, area: BlockArea) {
-    let model = block.type.model;
+    let model = block.model;
 
     model.boxes.forEach(box => {
       const param: BlockAreaExport.DrawCubeParam = {

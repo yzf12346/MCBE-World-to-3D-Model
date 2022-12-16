@@ -1,23 +1,32 @@
-import BlockType, {BlockTexture} from "../world/BlockType";
 import {readFileSync} from "fs";
 import {Config} from "../../utils/Config";
 import TextureManager from "./TextureManager";
-
-
 import ModelConfigManager from "./ModelConfigManager";
+import Block, {BlockTextures} from "../world/Block";
+
+
 export default class BlockManager {
-  private static blocks = new Map<string, BlockType>();
+  private static blocks = new Map<string, Block>();
 
-  static getBlock(identifier: string): BlockType | undefined {
-    return this.blocks.get(identifier);
-
+  static getBlock(identifier: string): Block | undefined {
+    if (this.blocks.has(identifier)) {
+      return this.blocks.get(identifier).clone();
+    }
+    return undefined;
   }
 
+  /**
+   * 初始化方块管理器
+   * @description 须先初始化
+   * OptifinePartManager,
+   * ModelConfigManager,
+   * TextureManager
+   */
   static init(): void {
     this.readBlocksJson(Config.blockJsonPath);
   }
 
-  private static bindSideTexture(bt: BlockTexture, textureName: string) {
+  private static bindSideTexture(bt: BlockTextures, textureName: string) {
     // 如果哪个面没有被贴图则贴图
     if (bt.east == "") {
       bt.east = textureName;
@@ -33,7 +42,7 @@ export default class BlockManager {
     }
   }
 
-  private static readTexture(blk: BlockType, textureJson: any) {
+  private static readTexture(blk: Block, textureJson: any) {
     // 初始化
     blk.textures = {
       up: "",
@@ -102,26 +111,25 @@ export default class BlockManager {
         return;
       }
       // 创建方块类型并放入Map
-      const type_ = new BlockType();
-      type_.identifier = key;
-      this.blocks.set(key, type_);
+      const block = new Block(key, undefined);
+      this.blocks.set(key, block);
 
       // 获取方块的贴图
       const value = data[key];
       const texture = value["textures"];
 
       // 获取方块的模型
-      type_.model = ModelConfigManager.getModel(type_.identifier);
+      block.model = ModelConfigManager.getModel(block.identifier);
       // 获取方块是否有面剔除
-      type_.isCulling = ModelConfigManager.getIsCulling(type_.identifier);
+      block.isCulling = ModelConfigManager.getIsCulling(block.identifier);
       // 如果方块没有贴图属性则返回
       // 如 air
       if (texture == undefined) {
-        type_.visible = false;
+        block.visible = false;
         return;
       }
       // 读取textures
-      this.readTexture(type_, texture);
+      this.readTexture(block, texture);
     });
   }
 }

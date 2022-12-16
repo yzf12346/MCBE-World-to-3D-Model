@@ -11,7 +11,6 @@ export default class ResourceManager {
     let basePath = Config.texturePath;
     if (basePath.endsWith("/")) {
       basePath = basePath.slice(0, basePath.length - 1);
-     // log(basePath)
     }
     return file.replace(/^textures/g, basePath).replace(/(.png)*$/g, ".png");
   }
