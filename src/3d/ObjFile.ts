@@ -1,23 +1,22 @@
-import {openSync, unwatchFile, writeFileSync} from "fs";
-import BlockArea, {Block} from "../container/BlockArea";
-import BlockModel, {BlockModelUV} from "../data/BlockModel";
-import ModelManager from "../manager/ModelManager";
+import {openSync, writeFileSync} from "fs"
+import ModelManager, {BlockModel, BlockModelUV} from "../manager/ModelManager";
 import TextureManager from "../manager/TextureManager";
 import vec2 from "../tsm/src/vec2";
 import vec3 from "../tsm/src/vec3";
 import round from "../utils/NumberUtils";
-import {string2vec, vec2string} from "../utils/VecString";
+import {hpVec2_2str, string2vec, vec2string} from "../utils/VecString";
 
 export class ObjFaceParam {
   vertexs: vec3[] = [];
   textureVertexs: vec2[] = [];
   texture: string;
+  reverse: boolean = false;
 }
 
 class ObjFace {
   vertexs: number[] = [];
   textureVertexs: number[] = [];
-  texture: string;
+  normals: number[] = [];
 }
 
 export class ObjCubeParam {
@@ -61,6 +60,7 @@ export class ObjCubeParam {
 export default class ObjFile {
   private vertexs = new Map<string, number>();
   private textureVertexs = new Map<string, number>();
+  private normals = new Map<string, number>();
   private faces = new Array<ObjFace>();
   /**
    * 添加一个顶点
@@ -84,7 +84,7 @@ export default class ObjFile {
    * @returns 返回顶点的索引
    */
   public addTextureVertex(pos: vec2): number {
-    let str = vec2string(pos);
+    let str = hpVec2_2str(pos);
     if (this.textureVertexs.has(str)) {
       return this.textureVertexs.get(str);
     }
@@ -93,17 +93,74 @@ export default class ObjFile {
   }
 
   /**
+   * 添加一个法向
+   * @param normal 法向
+   * @returns 法向的索引
+   */
+  public addNormal(normal: vec3): number {
+    let str = vec2string(normal);
+    if (this.normals.has(str)) {
+      return this.normals.get(str);
+    }
+    this.normals.set(str, this.normals.size);
+    return this.normals.size - 1;
+  }
+
+  /**
    * 添加一个面
    */
-  public addFace(face: ObjFaceParam) {
-    let face_ = new ObjFace();
-    face.vertexs.forEach(vec => {
-      face_.vertexs.push(this.addVertex(vec) + 1);
-    });
-    face.textureVertexs.forEach(vec => {
-      face_.textureVertexs.push(this.addTextureVertex(vec) + 1);
-    });
-    this.faces.push(face_);
+  public add4Face(face: ObjFaceParam) {
+    let face1 = new ObjFace();
+    let face2 = new ObjFace();
+
+    if (face.reverse) {
+      let temp = face.vertexs[1];
+      face.vertexs[1] = face.vertexs[3];
+      face.vertexs[3] = temp;
+
+      let temp_ = face.textureVertexs[1];
+      face.textureVertexs[1] = face.textureVertexs[3];
+      face.textureVertexs[3] = temp_;
+    }
+
+    face1.vertexs = [
+      this.addVertex(face.vertexs[0]),
+      this.addVertex(face.vertexs[1]),
+      this.addVertex(face.vertexs[2])
+    ];
+    face1.textureVertexs = [
+      this.addTextureVertex(face.textureVertexs[0]),
+      this.addTextureVertex(face.textureVertexs[1]),
+      this.addTextureVertex(face.textureVertexs[2])
+    ];
+    face1.normals = this.calcNormal(
+      face.vertexs[0],
+      face.vertexs[1],
+      face.vertexs[2]);
+
+    face2.vertexs = [
+      this.addVertex(face.vertexs[2]),
+      this.addVertex(face.vertexs[3]),
+      this.addVertex(face.vertexs[0])
+    ];
+    face2.textureVertexs = [
+      this.addTextureVertex(face.textureVertexs[2]),
+      this.addTextureVertex(face.textureVertexs[3]),
+      this.addTextureVertex(face.textureVertexs[0])
+    ];
+    face2.normals = this.calcNormal(
+      face.vertexs[2],
+      face.vertexs[3],
+      face.vertexs[0]);
+    this.faces.push(face1, face2);
+  }
+
+  private calcNormal(v1: vec3, v2: vec3, v3: vec3): [number, number, number] {
+    let na = (v2.y - v1.y) * (v3.z - v1.z) - (v2.z - v1.z) * (v3.y - v1.y);
+    let nb = (v2.z - v1.z) * (v3.x - v1.x) - (v2.x - v1.x) * (v3.z - v1.z);
+    let nc = (v2.x - v1.x) * (v3.y - v1.y) - (v2.y - v1.y) * (v3.x - v1.x);
+    let normalindex = this.addNormal(new vec3([na, nb, nc]));
+    return [normalindex, normalindex, normalindex];
   }
 
   /**
@@ -127,6 +184,8 @@ export default class ObjFile {
     ]);
 
     let southF = new ObjFaceParam();
+    // 翻转面方向
+    southF.reverse = true;
     southF.vertexs = [
       applyRotation(
         cube.origin, new vec3([mn.x, mn.y, mn.z]), cube.rotation),
@@ -141,8 +200,9 @@ export default class ObjFile {
       southF.textureVertexs = TextureManager.getUvs(
         cube.faces.south.texture, cube.faces.south.uv);
 
-      this.addFace(southF);
+      this.add4Face(southF);
     }
+
 
     southF.textureVertexs = [
       new vec2([0, 0]),
@@ -151,7 +211,7 @@ export default class ObjFile {
       new vec2([0, 1])
     ];
     if (cube.noUV) {
-      this.addFace(southF);
+      this.add4Face(southF);
     }
 
     let northF = new ObjFaceParam();
@@ -176,13 +236,15 @@ export default class ObjFile {
       northF.textureVertexs = TextureManager.getUvs(
         cube.faces.north.texture, cube.faces.north.uv);
 
-      this.addFace(northF);
+      this.add4Face(northF);
     }
     if (cube.noUV) {
-      this.addFace(northF);
+      this.add4Face(northF);
     }
 
     let eastF = new ObjFaceParam();
+    // 翻转面方向
+    eastF.reverse = true;
     eastF.vertexs = [
       applyRotation(
         cube.origin, new vec3([mx.x, mn.y, mn.z]), cube.rotation),
@@ -203,10 +265,10 @@ export default class ObjFile {
       eastF.textureVertexs = TextureManager.getUvs(
         cube.faces.east.texture, cube.faces.east.uv);
 
-      this.addFace(eastF);
+      this.add4Face(eastF);
     }
     if (cube.noUV) {
-      this.addFace(eastF);
+      this.add4Face(eastF);
     }
 
     let westF = new ObjFaceParam();
@@ -231,10 +293,10 @@ export default class ObjFile {
       westF.textureVertexs = TextureManager.getUvs(
         cube.faces.west.texture, cube.faces.west.uv);
 
-      this.addFace(westF);
+      this.add4Face(westF);
     }
     if (cube.noUV) {
-      this.addFace(westF);
+      this.add4Face(westF);
     }
 
     let upF = new ObjFaceParam();
@@ -259,11 +321,11 @@ export default class ObjFile {
       upF.textureVertexs = TextureManager.getUvs(
         cube.faces.up.texture, cube.faces.up.uv, true);
 
-      this.addFace(upF);
+      this.add4Face(upF);
     }
 
     if (cube.noUV) {
-      this.addFace(upF);
+      this.add4Face(upF);
     }
 
     /*  console.log(TextureManager.getRegion(cube.faces.up.texture).uv);
@@ -275,6 +337,8 @@ export default class ObjFile {
 
 
     let bottomF = new ObjFaceParam();
+    // 翻转面方向
+    bottomF.reverse = true;
     bottomF.vertexs = [
       applyRotation(
         cube.origin, new vec3([mn.x, mn.y, mn.z]), cube.rotation),
@@ -292,15 +356,17 @@ export default class ObjFile {
       new vec2([0, 1])
     ];
 
+    //console.log(cube.faces);
+
     if (cube.faces?.down != undefined) {
       bottomF.textureVertexs = TextureManager.getUvs(
         cube.faces.down.texture, cube.faces.down.uv, true);
 
-      this.addFace(bottomF);
+      this.add4Face(bottomF);
     }
 
     if (cube.noUV) {
-      this.addFace(bottomF);
+      this.add4Face(bottomF);
     }
   }
 
@@ -320,43 +386,6 @@ export default class ObjFile {
       this.addCube(cube);
     });
   }
-
-  public drawArea(area: BlockArea, culling: boolean = true) {
-    for (let [pos, blk] of area) {
-      let up: Block | undefined = area.getBlock(
-        pos.copy().add(new vec3([0, 1, 0])));
-      let down: Block | undefined = area.getBlock(
-        pos.copy().add(new vec3([0, -1, 0])));
-
-      let east: Block | undefined = area.getBlock(
-        pos.copy().add(new vec3([1, 0, 0])));
-      let west: Block | undefined = area.getBlock(
-        pos.copy().add(new vec3([-1, 0, 0])));
-
-      let north: Block | undefined = area.getBlock(
-        pos.copy().add(new vec3([0, 0, 1])));
-      let south: Block | undefined = area.getBlock(
-        pos.copy().add(new vec3([0, 0, -1])));
-
-      if (culling
-        && up?.isFullBlock
-        && down?.isFullBlock
-        && east?.isFullBlock
-        && west?.isFullBlock
-        && north?.isFullBlock
-        && south?.isFullBlock) {
-        continue;
-      }
-
-      this.drawBlock(blk, pos);
-    }
-  }
-
-  public drawBlock(block: Block, position: vec3) {
-    let model = ModelManager.getModel(block.name);
-    this.drawModel(model, position);
-  }
-
 
   /**
    * 保存所有顶点
@@ -397,7 +426,28 @@ export default class ObjFile {
     arr.forEach(value => {
       let pos = string2vec(value[0]) as vec2;
       writeFileSync(handel,
-        `vt ${vec2string(pos)}\n`);
+        `vt ${hpVec2_2str(pos)}\n`);
+    });
+  }
+
+  /**
+   * 保存所有的顶点法向
+   * @param handle 文件的句柄
+   */
+  private saveVertexsNormal(handle: number) {
+    let arr = Array.from(this.normals);
+    arr = arr.sort((a, b) => {return a[1] - b[1];});
+
+    const info =
+      `# ===========================
+# ===== Vertex Normals =====
+# ===========================\n`;
+    writeFileSync(handle, info);
+
+    arr.forEach(value => {
+      let pos = string2vec(value[0]) as vec3;
+      writeFileSync(handle,
+        `vn ${vec2string(pos)}\n`);
     });
   }
 
@@ -411,10 +461,11 @@ export default class ObjFile {
     for (let face of this.faces) {
       let faceStr = "f";
       for (let i = 0; i < face.vertexs.length; i++) {
-        let vt = face.textureVertexs[i];
-        let v = face.vertexs[i];
+        let vt = face.textureVertexs[i] + 1;
+        let v = face.vertexs[i] + 1;
+        let vn = face.normals[i] + 1;
 
-        faceStr += ` ${v}/${vt}`;
+        faceStr += ` ${v}/${vt}/${vn}`;
       }
 
       // 去重
@@ -440,6 +491,7 @@ export default class ObjFile {
 
     this.saveVertexs(handel);
     this.saveTextureVertexs(handel);
+    this.saveVertexsNormal(handel);
     this.saveFaces(handel);
   }
 }

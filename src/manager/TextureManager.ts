@@ -70,7 +70,6 @@ export default class TextureManager {
     uvs: [number, number, number, number],
     rot: boolean = false) {
     let re = this.getRegion(name);
-    
 
     let reUV = [
       re.uv[0] + (re.uv[2] - re.uv[0]) * (uvs[0] / 16),
@@ -89,6 +88,11 @@ export default class TextureManager {
       reUV[3]
     ]);
 
+    let offset = u.copy().subtract(v.copy()).scale(0.00325);
+
+    u.subtract(offset);
+    v.add(offset);
+
     if (rot) {
       return [
         new vec2([v.x, v.y]),
@@ -97,6 +101,8 @@ export default class TextureManager {
         new vec2([u.x, v.y]),
       ];
     }
+    //console.log(reUV);
+    
     return [
       new vec2([u.x, v.y]),
       new vec2([v.x, v.y]),

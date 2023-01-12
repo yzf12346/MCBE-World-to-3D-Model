@@ -2,9 +2,10 @@ import {V4MAPPED} from "dns";
 import vec2 from "../tsm/src/vec2";
 import vec3 from "../tsm/src/vec3";
 import vec4 from "../tsm/src/vec4";
+import round from "./NumberUtils";
 
 function toFixedUp(num:number){
-  return parseFloat(num.toFixed(5));
+  return round(num, 2);
 }
 
 export function vec2string(vec:vec2|vec3|vec4):string{
@@ -32,6 +33,10 @@ export function vec2string(vec:vec2|vec3|vec4):string{
   }  
 
   return result;
+}
+
+export function hpVec2_2str(vec:vec2){
+  return `${vec.x.toFixed(4)} ${vec.y.toFixed(4)}`
 }
 
 export function string2vec(str:string):vec2|vec3|vec4{
